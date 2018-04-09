@@ -9,11 +9,7 @@ fi
 # Check if we have meteor instaled, install if not
 if ! [ -x "$(command -v meteor)" ]; then
   echo "Could not find meteor, installing"
-  curl https://install.meteor.com/ | sh
-  if ! [ $0 -eq 0 ]; then
-    echo "Could not install meteor. Aborting..."
-    exit 1
-  fi
+  curl https://install.meteor.com/ | sh  
 fi
 
 echo "Running meteor build"
@@ -21,12 +17,8 @@ echo "Destination: ../build-output-rcchat"
 
 meteor build --server-only ../build-output-rcchat
 
-if ! [ $0 -eq 0 ]; then
-  echo "Something went wrong while meteor build"
-  exit 1
-fi
-
-cp ../build-output-rcchat ./build-output-rcchat
+rm -f Rocket.Chat.tar
+cp -R ../build-output-rcchat/Rocket.Chat.tar.gz ./
 
 docker build --tag pp-rcchat-dev:v1 .
 echo "Completed"
