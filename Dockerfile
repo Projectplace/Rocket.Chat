@@ -2,20 +2,21 @@ FROM node:latest
 
 LABEL maintainer=sdatta
 
-RUN set -x \
- && apt-get update && apt-get install -y curl ca-certificates imagemagick --no-install-recommends \
- && groupadd -g 99999 -r rocketchat \
- && useradd -u 99999 -r -g rocketchat rocketchat
+RUN apt-get update && apt-get install -y curl ca-certificates imagemagick --no-install-recommends \
+    && groupadd -g 99999 -r rocketchat \
+    && useradd -u 99999 -r -g rocketchat rocketchat \
+    && mkdir -p /tmp/tarfile \
+    && mkdir -p /app \
+    && mkdir -p /app/uploads \
+    && mkdir -p /app/bundle
 
-ADD . / /app/bundle/
+ADD ./build-output-rcchat/Rocket.Chat.tar /tmp/tarfile
+
+RUN tar -zxf /tmp/tarfile/Rocket.Chat.tar /app
 
 WORKDIR /app/bundle
 
-RUN set -x \
-    && mkdir -p /app \
-    && mkdir -p /app/uploads \
-    && mkdir -p /app/bundle \
-    && chown -R rocketchat:rocketchat /app \
+RUN chown -R rocketchat:rocketchat /app \
     && chmod +x ./meteor_install \
     && sh ./meteor_install \
     && npm install \
@@ -35,5 +36,4 @@ ENV DEPLOY_METHOD=docker \
 
 EXPOSE 3000
 
-CMD ["meteor", "npm", "start"]
-
+CMD ["node", "main.js"]
