@@ -1,6 +1,0 @@
-#!/bin/sh
-
-echo "Update packages"
-npm install
-meteor npm start
-
