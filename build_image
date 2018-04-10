@@ -1,5 +1,10 @@
 #!/bin/bash
 
+set -e
+
+rm -f Rocket.Chat.tar
+rm -fr ./build-output-rcchat
+
 # Check if we have node/npm installed
 if ! [ -x "$(command -v npm)" ]; then
   echo "Could not find node/npm. Please install and re-run the script"
@@ -15,10 +20,12 @@ fi
 echo "Running meteor build"
 echo "Destination: ../build-output-rcchat"
 
-meteor build --server-only ../build-output-rcchat
+export TOOL_NODE_FLAGS="--max-old-space-size=4096 --optimize_for_size --gc-interval=100"
+echo $TOOL_NODE_FLAGS
 
-rm -f Rocket.Chat.tar
-cp -R ../build-output-rcchat/Rocket.Chat.tar.gz ./
+meteor build --server-only ./build-output-rcchat
+
+cp -R ./build-output-rcchat/Rocket.Chat.tar.gz ./
 
 docker build --tag pp-rcchat-dev:v1 .
 echo "Completed"
