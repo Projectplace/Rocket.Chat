@@ -5,6 +5,9 @@ set -e
 rm -f Rocket.Chat.tar
 rm -fr ./build-output-rcchat
 
+# Install imagemagick
+sudo apt-get install -y imagemagick
+
 # Check if we have node/npm installed
 if ! [ -x "$(command -v npm)" ]; then
   echo "Could not find node/npm. Please install and re-run the script"
@@ -16,6 +19,9 @@ if ! [ -x "$(command -v meteor)" ]; then
   echo "Could not find meteor, installing"
   curl https://install.meteor.com/ | sh  
 fi
+
+echo "Running npm install"
+npm install
 
 echo "Running meteor build"
 echo "Destination: ../build-output-rcchat"
