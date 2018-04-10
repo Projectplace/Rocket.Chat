@@ -22,7 +22,7 @@ fi
 
 echo "Running npm install"
 npm install sharp
-npm install
+npm install --unsafe-perm
 
 echo "Running meteor build"
 echo "Destination: ../build-output-rcchat"

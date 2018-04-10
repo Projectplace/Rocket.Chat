@@ -11,6 +11,21 @@ RUN mkdir -p /tmp \
 
 ADD Rocket.Chat.tar.gz /app
 
+RUN apt-get update \
+    && apt-get install -y \
+       build-essential \
+       gcc \
+       git \
+       make \
+       python-pip \
+       python2.7 \
+       python2.7-dev \
+       ssh \
+    && apt-get autoremove \
+    && apt-get clean
+
+RUN pip install -U "setuptools==3.4.1"
+
 RUN cd /app/bundle/programs/server \
     && npm install --unsafe-perm \
     && npm cache clear --force \
