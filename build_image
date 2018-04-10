@@ -2,7 +2,7 @@
 
 set -e
 
-rm -f Rocket.Chat.tar
+rm -f Rocket.Chat.tar.*
 rm -fr ./build-output-rcchat
 
 # Install imagemagick
@@ -21,6 +21,7 @@ if ! [ -x "$(command -v meteor)" ]; then
 fi
 
 echo "Running npm install"
+npm install sharp
 npm install
 
 echo "Running meteor build"

@@ -12,7 +12,7 @@ RUN mkdir -p /tmp \
 ADD Rocket.Chat.tar.gz /app
 
 RUN cd /app/bundle/programs/server \
-    && npm install \
+    && npm install --unsafe-perm \
     && npm cache clear --force \
     && chown -R rocketchat:rocketchat /app
 
