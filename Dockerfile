@@ -7,7 +7,14 @@ LABEL maintainer=sdatta
 RUN mkdir -p /tmp \
     && mkdir -p /app \
     && mkdir -p /app/uploads \
-    && mkdir -p /app/bundle
+    && mkdir -p /app/bundle \
+    && mkdir -p /app/config
+
+ADD etcd_render /app/config
+
+ADD generate_config /app/config
+
+ADD v110.js.jinja2 /app/config
 
 ADD Rocket.Chat.tar.gz /app
 
@@ -24,7 +31,9 @@ RUN apt-get update \
     && apt-get autoremove \
     && apt-get clean
 
-RUN pip install -U "setuptools==3.4.1"
+RUN pip install -U "setuptools==3.4.1" \
+    && pip install "Jinja2==2.6" \
+    && pip install "requests==2.18.4" 
 
 RUN cd /app/bundle/programs/server \
     && npm install --unsafe-perm \
