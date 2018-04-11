@@ -1,0 +1,159 @@
+#!/usr/bin/env python
+'''Render a Jinja2 template with data from etcd.'''
+import sys
+import json
+from datetime import datetime
+from optparse import OptionParser
+import jinja2
+import requests
+from posixpath import normpath
+import os
+import re
+
+import ssl
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.poolmanager import PoolManager
+
+
+def main():
+    parser = OptionParser(usage='usage: %prog [options] etcd_host key template',
+                          description=__doc__)
+
+    parser.add_option('--timeout', dest='timeout',
+                      type='float', default=5, metavar='SECONDS',
+                      help='connection timeout value (default %default)')
+    parser.add_option('--extra-data', action='append', metavar='KEY=VAL',
+                      type='string', dest='extra', help='extend/override the data from etcd')
+    parser.formatter.set_long_opt_delimiter(' ')
+
+    opts, args = parser.parse_args()
+    try:
+        etcd_host, serverkey, template_file = args
+    except:
+        parser.print_usage(sys.stderr)
+        sys.exit(1)
+
+
+    extra = {}
+    for v in opts.extra or []:
+        try:
+            key, val = v.split('=', 1)
+            extra[key] = val
+        except ValueError:
+            print >> sys.stderr, 'Bad mapping: %s should be in form key=value' % v
+            sys.exit(1)
+
+    if ':' not in etcd_host:
+        etcd_host += ':4001'
+    if '://' not in etcd_host:
+        etcd_host = 'http://' + etcd_host
+
+    if '(pattern)' in serverkey:
+        serverkeys = []
+        for key in os.environ['CONFIG_DATA_KEYS'].split(';'):
+            serverkeys.append(serverkey.replace('(pattern)', key))
+    else:
+        serverkeys = [serverkey]
+    data = {}
+    for serverkey in serverkeys:
+        data.update(read_data(etcd_host, serverkey, opts.timeout))
+    data.update(extra)
+    print render(template_file, data)
+
+def read_data(host, key, timeout=None):
+    data = {}
+    key = normpath(key).lstrip('/')
+    pl = key.split('/')
+    leafname = pl[-1]
+    if leafname == '2':
+        # site2 for dev envs gets dev/se/nix/stefan/2, which should mean leaf stefan2
+        leafname = ''.join(pl[-2:])
+    path = ''
+    while pl:
+        path += pl.pop(0) + '/'
+        r = session().get('%s/v2/keys/%s' % (host, path), timeout=timeout)
+        if r.status_code == 404:
+            # dont break if key is missing, the parent may contain all what we need
+            continue
+        if r.status_code == 401:
+            # dont break if no access, might be that we don't have access higher up in hierarchy
+            print >> sys.stderr, 'No access to key %s'%path
+            continue
+        if r.status_code != 200:
+            print >> sys.stderr, 'Bad response (%s)' % r.status_code
+            print >> sys.stderr, r.content
+            sys.exit(1)
+
+        for node in r.json()['node'].get('nodes', []):
+            if node.get('dir', False):
+                continue
+            key = node['key'][len(path)+1:]
+            val = json.loads(node['value'].replace('{{LEAF}}', leafname))
+            data.update({key: val})
+
+    return data
+
+def session():
+    '''Work-around for SSL handshake error when talking to Go TLS server.'''
+    s = requests.session()
+    s.mount('https://', TLSv1Adapter())
+    return s
+
+class TLSv1Adapter(HTTPAdapter):
+    '''Transport adapter that allows us to use TLSv1.'''
+    def init_poolmanager(self, connections, maxsize, block=False):
+        self.poolmanager = PoolManager(num_pools=connections,
+                                       maxsize=maxsize,
+                                       block=block,
+                                       ssl_version=ssl.PROTOCOL_TLSv1)
+
+def render(template_file, data):
+    e = jinja2.Environment()
+    e.undefined = jinja2.StrictUndefined
+    e.filters['r'] = repr_filter
+    e.filters['str'] = str_filter
+    e.filters['tuple'] = tuple_filter
+    e.filters['random_choice'] = random_choice_filter
+    e.filters['word'] = word_filter
+    e.globals['timestamp'] = datetime.now().isoformat()
+    e.globals['date'] = e.globals['timestamp'] # TODO get rid of this
+    
+    with open(template_file) as f:
+        template = e.from_string(f.read())
+
+    return template.render(data)
+
+def repr_filter(val):
+    '''Returns the Python representation of the value if defined'''
+    if isinstance(val, jinja2.Undefined):
+        return val
+    return repr(val)
+
+def str_filter(val):
+    '''Ensure a string is represented as str and not unicode ('bla' instead of u'bla')'''
+    if isinstance(val, unicode):
+        return str(val)
+    if isinstance(val, list):
+        return [str_filter(v) for v in val]
+    return val
+
+def tuple_filter(val):
+    '''Converts the value to a tuple'''
+    if isinstance(val, jinja2.Undefined):
+        return val
+    if val == None:
+        return None
+    return tuple(val)
+
+def random_choice_filter(val):
+    '''Picks a random choise'''
+    import random
+    if type(val) == list:
+        return random.choice(val)
+    return val
+
+def word_filter(val):
+    return re.sub('\W', '_', val)
+
+if __name__ == '__main__':
+    main()
