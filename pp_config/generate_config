@@ -1,7 +1,9 @@
 #!/bin/bash
 
-ETCD_HOST = "https://rnd-etcd01.rnd.projectplace.com:2379"
-CONFIG_DATA = "dev/in/nix"
+# Currently hard coded path. Will change later
+ETCD_HOST="https://rnd-etcd01.rnd.projectplace.com:2379"
+MONGO_SERVER_CONFIG_PATH='/pp_config_data/dev/in'
+PP_CHAT_CONFIG_PATH='/pp_config_data/dev/in/nix/sdatta'
 
 TEMPFILE=$(mktemp)
 
@@ -19,8 +21,8 @@ function gen_cfg {
   export TMPFILE=$(mktemp /tmp/mkconf.$$.XXXXX)
   trap "rm -f $TMPFILE" EXIT ERR
 
-  cd /opt/src/config
-  if ! /opt/python-pp/bin/python etcd_render $ETCD_HOST $config $template > $TMPFILE; then
+  cd /app/config
+  if ! python etcd_render $ETCD_HOST $config $template > $TMPFILE; then
     echo "WARNING: failed to generate config $destination"
     exit 1
   fi
@@ -29,4 +31,3 @@ function gen_cfg {
   rm -f $TMPFILE
 }
 
-gen_cfg /rc_config_data/$CONFIG_DATA /app/config/v110.js.jinja2 /app/config/v110.js

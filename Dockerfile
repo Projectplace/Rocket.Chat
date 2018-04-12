@@ -10,11 +10,7 @@ RUN mkdir -p /tmp \
     && mkdir -p /app/bundle \
     && mkdir -p /app/config
 
-ADD etcd_render /app/config
-
-ADD generate_config /app/config
-
-ADD v110.js.jinja2 /app/config
+ADD pp_config /app/config
 
 ADD Rocket.Chat.tar.gz /app
 

@@ -14,6 +14,10 @@ import ssl
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.poolmanager import PoolManager
 
+# Currently hard coded path. Will change later
+MONGO_SERVER_CONFIG_PATH = '/pp_config_data/dev/in'
+PP_CHAT_CONFIG_PATH = '/pp_config_data/dev/in/nix/sdatta'
+
 
 def main():
     parser = OptionParser(usage='usage: %prog [options] etcd_host key template',

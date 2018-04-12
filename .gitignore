@@ -74,4 +74,5 @@ settings.json
 build.sh
 /public/livechat
 *.tar.gz
+build-output-rcchat/
 

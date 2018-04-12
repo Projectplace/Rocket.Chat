@@ -1,10 +1,10 @@
 RocketChat.Migrations.add({
 	version: 110,
 	up() {
-    const rootUserName = {{ rc_admin_user | default('pproot') | r }};
-    const rootUserPassword = {{ rc_admin_password | default('xeroxero') | r }};
-    const rootUserEmail = {{ rc_admin_email | default('pproot@planview.com') | r }};;
-    const rootUserFullName = {{ rc_admin_name | default('pproot') | r }};;
+    const rootUserName = 'pproot';
+    const rootUserPassword = 'xeroxero';
+    const rootUserEmail = 'pproot@planview.com';
+    const rootUserFullName = 'PP Chat root';
 
     const ppuser = RocketChat.models.Users.findOneByUsername(rootUserName);
     
