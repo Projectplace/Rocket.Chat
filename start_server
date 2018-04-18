@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+if [ $# -neq 2 ]; then
+  echo "Please specify the MONGO_URL and SERVICE_URL for this container to run"
+  exit 1
+fi
+
+export MONGO_URL="$1"
+export SERVICE_URL="$2"
+
+echo "MONGO is running at $MONGO_URL"
+echo "SERVICE is running at $SERVICE_URL"
+
+node main.js

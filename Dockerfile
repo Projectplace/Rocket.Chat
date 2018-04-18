@@ -42,9 +42,12 @@ VOLUME /app/uploads
 
 WORKDIR /app/bundle
 
+ADD start_server /app/bundle
+
+RUN chmod +x /app/bundle/start_server
+
 ENV DEPLOY_METHOD=docker \
     NODE_ENV=production \
-    MONGO_URL=mongodb://bglr-mongodb-01.rnd.projectplace.com/rocketchat_sdatta \
     HOME=/tmp \
     PORT=3000 \
     ROOT_URL=http://localhost:3000 \

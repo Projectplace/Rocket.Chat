@@ -25,7 +25,7 @@ npm install sharp
 npm install --unsafe-perm
 
 echo "Running meteor build"
-echo "Destination: ../build-output-rcchat"
+echo "Destination: ./build-output-rcchat"
 
 export TOOL_NODE_FLAGS="--max-old-space-size=4096 --optimize_for_size --gc-interval=100"
 echo $TOOL_NODE_FLAGS
@@ -34,5 +34,5 @@ meteor build --server-only ./build-output-rcchat
 
 cp -R ./build-output-rcchat/Rocket.Chat.tar.gz ./
 
-docker build --tag pp-rcchat-dev:v1 .
+#docker build --tag pp-rcchat-dev:v1 .
 echo "Completed"
