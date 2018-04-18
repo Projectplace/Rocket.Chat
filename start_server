@@ -2,7 +2,9 @@
 
 set -e
 
-if [ $# -neq 2 ]; then
+echo $#
+
+if ! [ "$#" -eq "2" ]; then
   echo "Please specify the MONGO_URL and SERVICE_URL for this container to run"
   exit 1
 fi
